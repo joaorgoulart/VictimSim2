@@ -53,54 +53,11 @@ class Explorer(AbstAgent):
         self.y = 0                 # current y position relative to the origin 0
         self.victims = {}          # a dictionary of found victims: (seq): ((x,y), [<vs>])
                                    # the key is the seq number of the victim,(x,y) the position, <vs> the list of vital signals
+        self.unbacktracked = []
+        self.explored = {}
 
         # put the current position - the base - in the map
         Explorer.map.add((self.x, self.y), 1, VS.NO_VICTIM, self.check_walls_and_lim())
-    
-    def online_DFS(self):
-        """
-        Perform online DFS.
-        """
-
-        # Check the neighborhood walls and grid limits
-        obstacles = self.check_walls_and_lim()
-
-        # Current state
-        state = (self.x, self.y)
-
-        # 8 possible directions
-        directions = list(range(8))
-
-        # Add the current state if it was not explored
-        if state not in self.untried:
-            self.untried[state] = directions
-            random.shuffle(self.untried[state]) # if not random, explorers go all the same way
-        
-        # Explores every untried direction
-        while self.untried[state]:
-
-            # next state
-            next_direction = self.untried[state][0]
-            dx, dy = self.AC_INCR[next_direction] # increment
-
-            obstacle = obstacles[next_direction] # {CLEAR, WALL, END}
-
-            if obstacle == VS.WALL or obstacle == VS.END: # wall or end state
-                # can not continue, pop
-                self.untried[state].pop(0)
-            elif obstacle == VS.CLEAR: # clear state
-
-                if state not in self.unbacktracked:
-                    self.unbacktracked[state] = []
-                
-                self.unbacktracked[state].append((self.x + dx, self.y + dy))
-
-                # return direction
-                return self.AC_INCR[self.untried[state].pop(0)]
-
-        # if can not continue, go back
-        if not self.untried[state]:
-            return self.unbacktracked[state].pop(0)
 
     def get_next_position(self):
         direction = self.online_DFS()
@@ -198,4 +155,46 @@ class Explorer(AbstAgent):
         self.come_back()
         return True
 
-    
+    def online_DFS(self):
+        """S
+        Perform online DFS.
+        """
+
+        # Check the neighborhood walls and grid limits
+        obstacles = self.check_walls_and_lim()
+
+        # Current state
+        state = (self.x, self.y)
+
+        # 8 possible directions
+        directions = list(range(8))
+
+        # Add the current state if it was not explored
+        if ((state not in self.explored) and (state not in self.untried)):
+            self.untried[state] = directions
+
+            random.shuffle(self.untried[state]) # if not random, explorers go all the same way
+        
+        self.explored[state] = 1
+
+        # Explores every untried direction
+        while self.untried[state]:
+
+            # next state
+            next_direction = self.untried[state].pop(0)
+            dx, dy = self.AC_INCR[next_direction] # increment
+
+            obstacle = obstacles[next_direction] # {CLEAR, WALL, END}
+
+            #if obstacle == VS.WALL or obstacle == VS.END: # wall or end state
+                
+            if obstacle == VS.CLEAR: # clear state
+                if ((self.x + dx, self.y + dy)) not in self.explored.keys():
+                    # return direction
+                    self.unbacktracked.append(state)
+                    return self.AC_INCR[next_direction]
+                
+        # if can not continue, go back
+        px, py = self.unbacktracked.pop()
+
+        return ((state[0] - px)*-1, (state[1] - py)*-1)
