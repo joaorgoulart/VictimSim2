@@ -12,7 +12,10 @@ from vs.abstract_agent import AbstAgent
 from vs.physical_agent import PhysAgent
 from vs.constants import VS
 from abc import ABC, abstractmethod
+import time
 
+from sklearn.cluster import KMeans
+import numpy as np
 
 ## Classe que define o Agente Rescuer com um plano fixo
 class Rescuer(AbstAgent):
@@ -40,6 +43,38 @@ class Rescuer(AbstAgent):
         # It changes to ACTIVE when the map arrives
         self.set_state(VS.IDLE)
 
+    def cluster_victims(self, map, victims):
+
+        # victims is a list of dicts
+        # victims = [{1 : [(x1, y1), (i1, pSist1, pDist1, qPA1, pulso1, resp1)]}, {2 : [(x2, y2), (i2, pSist2, pDist2, qPA2, pulso2, resp2)]}, ...]
+
+        vital_signals = []
+
+        for victims_dict in victims:
+            for seq, data in victims_dict.items():
+                coord, signals = data
+                vital_signals.append(signals)
+
+        # clustering based on raw vital signals (improve this)
+        X = np.array(vital_signals)
+
+        num_clusters = 4
+
+        # exec k-means
+        kmeans = KMeans(n_clusters=num_clusters)
+        kmeans.fit(X)
+
+        # get the labels
+        labels = kmeans.labels_
+
+        # assign the labels to the victims
+        for (seq, data), label in zip(victims_dict.items(), labels):
+            coord, signals = data
+            print(f"Vítima na coordenada {coord} tem etiqueta de cluster {label}")
+        
+        time.sleep(5) # view labels in the console
+
+        # method not finished yet... (save the results)
     
     def go_save_victims(self, map, victims):
         """ The explorer sends the map containing the walls and

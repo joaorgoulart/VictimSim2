@@ -147,7 +147,8 @@ class Explorer(AbstAgent):
             Explorer.num_of_explorers -= 1
 
             if (Explorer.num_of_explorers == 0):
-                # the last explorer calls the rescuer
+                # the last explorer groups the victims and calls the rescuer
+                self.resc.cluster_victims(Explorer.map, Explorer.global_victims.copy())
                 self.resc.go_save_victims(Explorer.map, Explorer.global_victims.copy())
                  
             return False
