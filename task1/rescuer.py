@@ -16,6 +16,7 @@ import time
 
 from sklearn.cluster import KMeans
 import numpy as np
+import csv
 
 ## Classe que define o Agente Rescuer com um plano fixo
 class Rescuer(AbstAgent):
@@ -74,10 +75,25 @@ class Rescuer(AbstAgent):
         # get the labels
         labels = kmeans.labels_
 
+        # create clusters output path
+        cluster_dir = "task1/clusters"
+        if not os.path.exists(cluster_dir):
+            os.makedirs(cluster_dir)
+
         # assign the labels to the victims
         for (seq, data), label in zip(victims.items(), labels):
             coord, signals = data
             print(f"Vítima {seq} na coordenada {coord} tem etiqueta de cluster {label}")
+
+            cluster_file = f"{cluster_dir}/cluster{label+1}.txt"
+
+            # save the victim's data to the respective cluster file in CSV format
+            with open(cluster_file, 'a', newline='') as file:
+                writer = csv.writer(file)
+                id = seq
+                x, y = coord
+                gravidade = 0.0
+                writer.writerow([id, x, y, gravidade, label])
         
         time.sleep(5) # view labels in the console
 
