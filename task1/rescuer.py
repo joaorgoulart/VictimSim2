@@ -17,6 +17,7 @@ import time
 from sklearn.cluster import KMeans
 import numpy as np
 import csv
+import shutil
 
 ## Classe que define o Agente Rescuer com um plano fixo
 class Rescuer(AbstAgent):
@@ -77,8 +78,9 @@ class Rescuer(AbstAgent):
 
         # create clusters output path
         cluster_dir = "task1/clusters"
-        if not os.path.exists(cluster_dir):
-            os.makedirs(cluster_dir)
+        if os.path.exists(cluster_dir):
+            shutil.rmtree(cluster_dir)
+        os.makedirs(cluster_dir)
 
         # assign the labels to the victims
         for (seq, data), label in zip(victims.items(), labels):
