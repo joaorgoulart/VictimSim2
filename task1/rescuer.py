@@ -48,12 +48,19 @@ class Rescuer(AbstAgent):
         # victims is a list of dicts
         # victims = [{1 : [(x1, y1), (i1, pSist1, pDist1, qPA1, pulso1, resp1)]}, {2 : [(x2, y2), (i2, pSist2, pDist2, qPA2, pulso2, resp2)]}, ...]
 
+        unified_dict = {}
+
+        for d in victims:
+            for k, v in d.items():
+                unified_dict[k] = v
+
+        victims = dict(sorted(unified_dict.items()))
+
         vital_signals = []
 
-        for victims_dict in victims:
-            for seq, data in victims_dict.items():
-                coord, signals = data
-                vital_signals.append(signals)
+        for seq, data in victims.items():
+            coord, signals = data
+            vital_signals.append(signals)
 
         # clustering based on raw vital signals (improve this)
         X = np.array(vital_signals)
@@ -68,9 +75,9 @@ class Rescuer(AbstAgent):
         labels = kmeans.labels_
 
         # assign the labels to the victims
-        for (seq, data), label in zip(victims_dict.items(), labels):
+        for (seq, data), label in zip(victims.items(), labels):
             coord, signals = data
-            print(f"Vítima na coordenada {coord} tem etiqueta de cluster {label}")
+            print(f"Vítima {seq} na coordenada {coord} tem etiqueta de cluster {label}")
         
         time.sleep(5) # view labels in the console
 
