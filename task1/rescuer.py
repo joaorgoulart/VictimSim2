@@ -17,6 +17,7 @@ import time
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 from sklearn.metrics import silhouette_samples
+from sklearn.model_selection import GridSearchCV
 import numpy as np
 import csv
 import shutil
@@ -62,7 +63,7 @@ class Rescuer(AbstAgent):
         victims = dict(sorted(unified_dict.items()))
 
         vital_signals = []
-
+        
         for seq, data in victims.items():
             coord, signals = data
 
@@ -81,39 +82,40 @@ class Rescuer(AbstAgent):
             else:
                 g_label = 4
             signals.append(g_label)
-            
 
             vital_signals.append(signals)
-
-        # clustering based on raw vital signals (improve this)
+        
         X = np.array(vital_signals)
 
-        num_clusters = 4
+        # Criando o modelo K-means
+        kmeans = KMeans(algorithm='elkan', 
+                        init='random',
+                        max_iter=100,
+                        n_clusters=5,
+                        n_init=10,
+                        verbose=0,
+                        copy_x=True,
+                        random_state=42,
+                        tol=0.0001)
 
-        # exec k-means
-        kmeans = KMeans(n_clusters=num_clusters)
+        # Treinando o modelo
         kmeans.fit(X)
 
-        # distância intra-cluster SSE
-        sse = kmeans.inertia_
-        print("Soma dos Erros Quadráticos (SSE):", sse)
-
-        time.sleep(2)
-
-        # análise de silhueta
-        silhouette_avg = silhouette_score(X, kmeans.labels_)
-        print("Pontuação média de silhueta:", silhouette_avg)
-
-        time.sleep(2)
-
-        # Por amostra Silhueta Score
-        sample_silhouette_values = silhouette_samples(X, kmeans.labels_)
-        print(sample_silhouette_values)
-
-        time.sleep(2)
-
-        # get the labels
+        # Obtendo os rótulos dos clusters para cada amostra
         labels = kmeans.labels_
+
+        # Sum of Squared Errors
+        sse = kmeans.inertia_
+
+        # Calculando o coeficiente de silhueta
+        silhouette_avg = silhouette_score(X, kmeans.fit_predict(X))
+
+        print(f"SSE: {sse}")
+        print(f"Silhouette Score: {silhouette_avg}")
+
+        time.sleep(5)
+
+        ############## OUTPUT FILES #############################
 
         # create clusters output path
         cluster_dir = "task1/clusters"
@@ -138,8 +140,6 @@ class Rescuer(AbstAgent):
                 writer.writerow([id, x, y, round(gravidade, 2), g_label])
         
         time.sleep(5) # view labels in the console
-
-        # method not finished yet... (save the results)
     
     def go_save_victims(self, map, victims):
         """ The explorer sends the map containing the walls and
