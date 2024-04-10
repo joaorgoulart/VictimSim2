@@ -28,6 +28,9 @@ class Stack:
         return len(self.items) == 0
 
 class Explorer(AbstAgent):
+
+    num_of_explorers = 0
+
     def __init__(self, env, config_file, resc):
         """ Construtor do agente random on-line
         @param env: a reference to the environment 
@@ -36,6 +39,7 @@ class Explorer(AbstAgent):
         """
 
         super().__init__(env, config_file)
+        Explorer.num_of_explorers += 1
         self.walk_stack = Stack()  # a stack to store the movements
         self.set_state(VS.ACTIVE)  # explorer is active since the begin
         self.resc = resc           # reference to the rescuer agent
@@ -136,13 +140,18 @@ class Explorer(AbstAgent):
 
         # time to come back to the base
         if self.walk_stack.is_empty() or (self.x == 0 and self.y == 0):
+
+            print(f"{self.NAME}: rtime {self.get_rtime()}, invoking the rescuer")
+            Explorer.num_of_explorers -= 1
+
             # time to wake up the rescuer
             # pass the walls and the victims (here, they're empty)
             print(f"{self.NAME}: rtime {self.get_rtime()}, invoking the rescuer")
             #input(f"{self.NAME}: type [ENTER] to proceed")
-            self.resc.go_save_victims(self.map, self.victims)
+            if (Explorer.num_of_explorers == 0):
+                self.resc.go_save_victims(self.map, self.victims)
+
             return False
 
         self.come_back()
         return True
-

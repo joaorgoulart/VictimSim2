@@ -26,7 +26,14 @@ def main(data_folder_name):
 
     # Explorer needs to know rescuer to send the map
     # that's why rescuer is instatiated before
-    exp = Explorer(env, explorer_file, resc)
+    num_of_explorers = 4
+    explorers = []
+    for i in range(0, num_of_explorers):
+        explorers.append(Explorer(env, explorer_file, resc))
+    
+    print(f"\n{num_of_explorers} EXPLORADORES!\n")
+    time.sleep(1)
+
 
     # Run the environment simulator
     env.run()
@@ -39,6 +46,6 @@ if __name__ == '__main__':
     if len(sys.argv) > 1:
         data_folder_name = sys.argv[1]
     else:
-        data_folder_name = os.path.join("datasets", "data_10v_12x12")
+        data_folder_name = os.path.join("datasets", "data_225v_100x80")
         
     main(data_folder_name)
