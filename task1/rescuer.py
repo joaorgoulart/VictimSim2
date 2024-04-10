@@ -62,15 +62,31 @@ class Rescuer(AbstAgent):
         victims = dict(sorted(unified_dict.items()))
 
         vital_signals = []
-        gravidade = []
 
         for seq, data in victims.items():
             coord, signals = data
-            gravidade.append([signals[0], signals[1] * 0.4 + signals[2] * 0.3 + signals[3] * 0.1 + signals[4] * 0.1 + signals[5] * 0.1])
+
+            # normalizando os sinais vitais [0, 1] (ideal = 0)           
+            qPA = abs((signals[3])/10)
+            pulso = abs((signals[4] - 100)/100)
+            resp = abs((signals[5] - 11)/11)
+            gravity = ((qPA + pulso + resp)/3)*100
+            signals.append(gravity)
+            if gravity > 75:    
+                g_label = 1
+            elif 75 > gravity > 50: 
+                g_label = 2
+            elif 50 > gravity > 25:
+                g_label = 3
+            else:
+                g_label = 4
+            signals.append(g_label)
+            
+
             vital_signals.append(signals)
 
         # clustering based on raw vital signals (improve this)
-        X = np.array(gravidade)
+        X = np.array(vital_signals)
 
         num_clusters = 4
 
@@ -117,8 +133,9 @@ class Rescuer(AbstAgent):
                 writer = csv.writer(file)
                 id = seq
                 x, y = coord
-                gravidade = 0.0
-                writer.writerow([id, x, y, gravidade, label])
+                gravidade = signals[6]
+                g_label = signals[7]
+                writer.writerow([id, x, y, round(gravidade, 2), g_label])
         
         time.sleep(5) # view labels in the console
 
