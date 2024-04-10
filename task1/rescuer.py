@@ -15,9 +15,12 @@ from abc import ABC, abstractmethod
 import time
 
 from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score
+from sklearn.metrics import silhouette_samples
 import numpy as np
 import csv
 import shutil
+import matplotlib.pyplot as plt
 
 ## Classe que define o Agente Rescuer com um plano fixo
 class Rescuer(AbstAgent):
@@ -59,19 +62,39 @@ class Rescuer(AbstAgent):
         victims = dict(sorted(unified_dict.items()))
 
         vital_signals = []
+        gravidade = []
 
         for seq, data in victims.items():
             coord, signals = data
+            gravidade.append([signals[0], signals[1] * 0.4 + signals[2] * 0.3 + signals[3] * 0.1 + signals[4] * 0.1 + signals[5] * 0.1])
             vital_signals.append(signals)
 
         # clustering based on raw vital signals (improve this)
-        X = np.array(vital_signals)
+        X = np.array(gravidade)
 
         num_clusters = 4
 
         # exec k-means
         kmeans = KMeans(n_clusters=num_clusters)
         kmeans.fit(X)
+
+        # distância intra-cluster SSE
+        sse = kmeans.inertia_
+        print("Soma dos Erros Quadráticos (SSE):", sse)
+
+        time.sleep(2)
+
+        # análise de silhueta
+        silhouette_avg = silhouette_score(X, kmeans.labels_)
+        print("Pontuação média de silhueta:", silhouette_avg)
+
+        time.sleep(2)
+
+        # Por amostra Silhueta Score
+        sample_silhouette_values = silhouette_samples(X, kmeans.labels_)
+        print(sample_silhouette_values)
+
+        time.sleep(2)
 
         # get the labels
         labels = kmeans.labels_
